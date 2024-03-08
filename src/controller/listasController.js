@@ -143,7 +143,7 @@ listasController.delete = async (req, res) => {
 
         const exist = await checkList(id);
         if (!exist) {
-            return res.status(404).json({ message: 'Lista não encontrado' });
+            return res.status(404).json({ message: 'Lista não encontrada' });
         }
 
         const pool = mysql.createPool(dbConfig);
