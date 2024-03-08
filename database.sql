@@ -28,11 +28,12 @@ CREATE TABLE `itens_lista` (
   `fk_produto` int NOT NULL,
   `quantidade_produto` int NOT NULL,
   `valor_unidade_produto` double(10,2) DEFAULT NULL,
-  `created` datetime NOT NULL,
-  `modified` datetime NOT NULL,
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_lista_idx` (`fk_lista`),
   KEY `fk_produto_idx` (`fk_produto`),
   CONSTRAINT `fk_lista` FOREIGN KEY (`fk_lista`) REFERENCES `lista` (`id`),
   CONSTRAINT `fk_produto` FOREIGN KEY (`fk_produto`) REFERENCES `produtos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
