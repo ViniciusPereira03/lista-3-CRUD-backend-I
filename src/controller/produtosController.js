@@ -1,5 +1,7 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../../database');
+const { checkProduct } = require('../functions/globalFunctions');
+
 
 const produtosController = {};
 
@@ -163,25 +165,6 @@ produtosController.delete = async (req, res) => {
     } catch (error) {
         console.error('Erro na função produtosController.delete:', error);
         return res.status(422).json({ message: 'Erro interno do servidor', error });
-    }
-}
-
-const checkProduct = async (id) => {
-    const pool = mysql.createPool(dbConfig);
-    const conn = await pool.getConnection();
-
-    const checkProductSql = `
-        SELECT * FROM produtos
-        WHERE id = ?;
-    `;
-
-    const [checkResults] = await conn.execute(checkProductSql, [id]);
-    conn.release();
-
-    if (checkResults.length === 0) {
-        return false
-    } else {
-        return true;
     }
 }
 

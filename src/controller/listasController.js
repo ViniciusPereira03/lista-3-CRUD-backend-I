@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../../database');
+const { checkList } = require('../functions/globalFunctions');
 
 const listasController = {};
 
@@ -163,25 +164,6 @@ listasController.delete = async (req, res) => {
         });
     } catch (error) {
         return res.status(422).json({ message: 'Erro interno do servidor', error });
-    }
-}
-
-const checkList = async (id) => {
-    const pool = mysql.createPool(dbConfig);
-    const conn = await pool.getConnection();
-
-    const checkListSql = `
-        SELECT * FROM lista
-        WHERE id = ?;
-    `;
-
-    const [checkResults] = await conn.execute(checkListSql, [id]);
-    conn.release();
-
-    if (checkResults.length === 0) {
-        return false
-    } else {
-        return true;
     }
 }
 
