@@ -56,7 +56,7 @@ Se você ainda não tem o Node.js e o npm instalados, siga as instruções no [s
 
 1. Clone o repositório para sua máquina local.
     ```bash
-    git clone https://github.com/seu-usuario/lista-3-crud-backend-i.git
+    git clone https://github.com/ViniciusPereira03/lista-3-crud-backend-i.git
     ```
 
 2. Navegue até o diretório do projeto.
