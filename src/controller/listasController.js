@@ -1,5 +1,4 @@
-const mysql = require('mysql2/promise');
-const dbConfig = require('../../database');
+const db = require('../connection/database');
 const { checkList } = require('../functions/globalFunctions');
 
 const listasController = {};
@@ -7,16 +6,13 @@ const listasController = {};
 listasController.add = async (req, res) => {
     try {
         const data = req.body;
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
 
         const sql = `
             INSERT INTO lista (nome, descricao, data_compra)
             VALUES (?, ?, ?);
         `;
 
-        const [results] = await conn.execute(sql, [data.nome, data.descricao, data.data_compra]);
-        conn.release();
+        const [results] = await db.execute(sql, [data.nome, data.descricao, data.data_compra]);
 
         const response = {
             id: results.insertId,
@@ -40,16 +36,12 @@ listasController.get = async (req, res) => {
             return res.status(400).json({ message: 'ID da lista inválido' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM lista
             WHERE id = ?;
         `;
 
-        const [lista] = await conn.execute(sql, [id]);
-        conn.release();
+        const [lista] = await db.execute(sql, [id]);
 
         if (lista.length === 0) {
             return res.status(404).json({ message: 'Lista não encontrada' });
@@ -66,16 +58,11 @@ listasController.get = async (req, res) => {
 
 listasController.list = async (req, res) => {
     try {
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM lista;
         `;
 
-        const [listas] = await conn.execute(sql);
-
-        conn.release();
+        const [listas] = await db.execute(sql);
 
         return res.status(200).json({
             message: 'Listas encontradas com sucesso!',
@@ -100,23 +87,19 @@ listasController.edit = async (req, res) => {
             return res.status(404).json({ message: 'Lista não encontrada' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             UPDATE lista 
             SET status = ?, nome = ?, descricao = ?, data_compra = ?
             WHERE id = ?;
         `;
 
-        const [results] = await conn.execute(sql, [
+        const [results] = await db.execute(sql, [
             data.status, 
             data.nome, 
             data.descricao, 
             data.data_compra, 
             id
         ]);
-        conn.release();
 
         const response = {
             id,
@@ -127,8 +110,6 @@ listasController.edit = async (req, res) => {
             message: 'Lista editada com sucesso!',
             produto: response,
         });
-
-        
     } catch (error) {
         return res.status(422).json({ message: 'Ocorreu um erro inesperado', error });
     }
@@ -147,17 +128,12 @@ listasController.delete = async (req, res) => {
             return res.status(404).json({ message: 'Lista não encontrada' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const deleteSql = `
             DELETE FROM lista
             WHERE id = ?;
         `;
 
-        await conn.execute(deleteSql, [id]);
-
-        conn.release();
+        await db.execute(deleteSql, [id]);
 
         return res.status(200).json({
             message: 'Lista excluída com sucesso!'
