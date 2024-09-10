@@ -1,5 +1,4 @@
-const mysql = require('mysql2/promise');
-const dbConfig = require('../../database');
+const db = require('../connection/database')
 const { checkProduct } = require('../functions/globalFunctions');
 
 
@@ -9,16 +8,13 @@ produtosController.add = async (req, res) => {
     
     try {
         const data = req.body;
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
 
         const sql = `
             INSERT INTO produtos (nome_produto, marca, categoria)
             VALUES (?, ?, ?);
         `;
 
-        const [results] = await conn.execute(sql, [data.nome_produto, data.marca, data.categoria]);
-        conn.release();
+        const [results] = await db.execute(sql, [data.nome_produto, data.marca, data.categoria]);
 
         const response = {
             id: results.insertId,
@@ -43,16 +39,12 @@ produtosController.get = async (req, res) => {
             return res.status(400).json({ message: 'ID do produto inválido' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM produtos
             WHERE id = ?;
         `;
 
-        const [results] = await conn.execute(sql, [id]);
-        conn.release();
+        const [results] = await db.execute(sql, [id]);
 
         if (results.length === 0) {
             return res.status(404).json({ message: 'Produto não encontrado' });
@@ -70,16 +62,11 @@ produtosController.get = async (req, res) => {
 
 produtosController.list = async (req, res) => {
     try {
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM produtos;
         `;
 
-        const [produtos] = await conn.execute(sql);
-
-        conn.release();
+        const [produtos] = await db.execute(sql);
 
         return res.status(200).json({
             message: 'Lista de produtos recuperada com sucesso!',
@@ -105,17 +92,13 @@ produtosController.edit = async (req, res) => {
             return res.status(404).json({ message: 'Produto não encontrado' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             UPDATE produtos 
             SET status = ?, nome_produto = ?, marca = ?, categoria = ?
             WHERE id = ?;
         `;
 
-        const [results] = await conn.execute(sql, [data.status, data.nome_produto, data.marca, data.categoria, id]);
-        conn.release();
+        const [results] = await db.execute(sql, [data.status, data.nome_produto, data.marca, data.categoria, id]);
 
         const response = {
             id,
@@ -147,17 +130,12 @@ produtosController.delete = async (req, res) => {
             return res.status(404).json({ message: 'Produto não encontrado' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const deleteSql = `
             DELETE FROM produtos
             WHERE id = ?;
         `;
 
-        await conn.execute(deleteSql, [id]);
-
-        conn.release();
+        await db.execute(deleteSql, [id]);
 
         return res.status(200).json({
             message: 'Produto excluído com sucesso!'
