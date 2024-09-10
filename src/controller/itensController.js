@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../../database');
 const { checkList, checkProduct, checkItem } = require('../functions/globalFunctions');
+const db = require('../connection/database'); 
 
 
 const itensController = {};
@@ -8,7 +9,6 @@ const itensController = {};
 itensController.add = async (req, res) => {
     try {
         const data = req.body;
-
 
         const existList = await checkList(data.lista_id);
         if (!existList) {
@@ -20,27 +20,22 @@ itensController.add = async (req, res) => {
             return res.status(404).json({ message: 'Produto não encontrado' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             INSERT INTO itens_lista (fk_lista, fk_produto, quantidade_produto, valor_unidade_produto)
             VALUES (?, ?, ?, ?);
         `;
 
-        const [results] = await conn.execute(sql, [
+        const [results] = await db.execute(sql, [
             data.lista_id, 
             data.produto_id, 
             data.quantidade_produto,
             data.valor_unidade_produto || null
         ]);
-        conn.release();
-
+        
         const response = {
             id: results.insertId,
             ...data
         }
-
         return res.status(200).json({
             message: 'Item adicionado a lista com sucesso!',
             produto: response,
@@ -58,16 +53,12 @@ itensController.get = async (req, res) => {
             return res.status(400).json({ message: 'ID do item inválido' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM itens_lista
             WHERE id = ?;
         `;
 
-        const [item] = await conn.execute(sql, [id]);
-        conn.release();
+        const [item] = await db.execute(sql, [id]);
 
         if (item.length === 0) {
             return res.status(404).json({ message: 'Item não encontrado' });
@@ -91,16 +82,11 @@ itensController.list = async (req, res) => {
             return res.status(404).json({ message: 'Lista não encontrada' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             SELECT * FROM itens_lista WHERE fk_lista = ?;
         `;
 
-        const [itens] = await conn.execute(sql, [listaId]);
-
-        conn.release();
+        const [itens] = await db.execute(sql, [listaId]);
 
         return res.status(200).json({
             message: 'Itens encontrados com sucesso!',
@@ -135,23 +121,19 @@ itensController.edit = async (req, res) => {
             return res.status(404).json({ message: 'Produto não encontrado' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const sql = `
             UPDATE itens_lista 
             SET fk_lista = ?, fk_produto = ?, quantidade_produto = ?, valor_unidade_produto = ?
             WHERE id = ?;
         `;
 
-        const [results] = await conn.execute(sql, [
+        const [results] = await db.execute(sql, [
             data.lista_id, 
             data.produto_id, 
             data.quantidade_produto, 
             data.valor_unidade_produto, 
             id
         ]);
-        conn.release();
 
         const response = {
             id,
@@ -182,17 +164,12 @@ itensController.delete = async (req, res) => {
             return res.status(404).json({ message: 'Item não encontrado' });
         }
 
-        const pool = mysql.createPool(dbConfig);
-        const conn = await pool.getConnection();
-
         const deleteSql = `
             DELETE FROM itens_lista
             WHERE id = ?;
         `;
 
-        await conn.execute(deleteSql, [id]);
-
-        conn.release();
+        await db.execute(deleteSql, [id]);
 
         return res.status(200).json({
             message: 'Item excluído com sucesso!'
